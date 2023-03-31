@@ -135,8 +135,40 @@ impl Algorithm2D for Map {
         pos.x >= 0 && pos.x < bounds.x && pos.y >= 0 && pos.y < bounds.y
     }
 }
+pub fn draw_map(ecs: &World, ctx: &mut Rltk) {
+    let map = ecs.fetch::<Map>();
+    let mut y = 0;
+    let mut x = 0;
+    for (idx, tile) in map.tiles.iter().enumerate() {
+        // rendera beroende på typ
+        if map.revealed_tiles[idx] {
+            match tile {
+                TileType::Floor => {
+                    ctx.set(
+                        x, 
+                        y, 
+                        RGB::from_f32(0.5, 0.5, 0.5), 
+                        RGB::from_f32(0., 0., 0.), rltk::to_cp437('.'));
+                }
+                TileType::Wall => {
+                    ctx.set(
+                        x, 
+                        y, 
+                        RGB::from_f32(0.0, 1.0, 0.0), 
+                        RGB::from_f32(0., 0., 0.), rltk::to_cp437('#'));
+                }
+            }
+        }
+        // flytta coords
+        x += 1;
+        if x > 79 {
+            x = 0;
+            y += 1;
+        }
 
-pub fn draw_map(ecs: &World, ctx : &mut Rltk) {
+    }
+}
+pub fn draw_map_old(ecs: &World, ctx : &mut Rltk) {
     let mut viewsheds = ecs.write_storage::<Viewshed>();
     let mut players = ecs.write_storage::<Player>();
     let map = ecs.fetch::<Map>();
