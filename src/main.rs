@@ -12,15 +12,23 @@ mod rect;
 pub use rect::Rect;
 mod visibility_system;
 use visibility_system::VisibilitySystem;
+mod monster_ai_system;
+use monster_ai_system::MonsterAI;
+
+#[derive(PartialEq, Clone, Copy)]
+pub enum RunState { Paused, Running }
 
 pub struct State {
-    pub ecs: World
+    pub ecs: World,
+    pub runstate : RunState
 }
 
 impl State {
     fn run_systems(&mut self) {
         let mut vis = VisibilitySystem{};
         vis.run_now(&self.ecs);
+        let mut mob = MonsterAI{};
+        mob.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -28,9 +36,12 @@ impl State {
 impl GameState for State {
     fn tick(&mut self, ctx : &mut Rltk) {
         ctx.cls();
-
-        player_input(self, ctx);
-        self.run_systems();
+        if self.runstate == RunState::Running {
+            self.run_systems();
+            self.runstate = RunState::Paused;
+        } else {
+            self.runstate = player_input(self, ctx);
+        }
 
         //let map = self.ecs.fetch::<Map>();
         // let map = self.ecs.fetch::<Map>();
@@ -55,12 +66,14 @@ fn main() -> rltk::BError {
         .with_title("Rustlike")
         .build()?;
     let mut gs = State {
-        ecs: World::new()
+        ecs: World::new(),
+        runstate: RunState::Running
     };
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
     gs.ecs.register::<Viewshed>();
+    gs.ecs.register::<Monster>();
     
     let map : Map = Map::new_map_rooms_and_corridors();
     // sätt player i mitten av första rummet skapat
@@ -86,6 +99,7 @@ fn main() -> rltk::BError {
                 visible_tiles: Vec::new(), 
                 range: 8, 
                 dirty: true })
+            .with(Monster{})
             .build();
     }
     gs.ecs.insert(map);
