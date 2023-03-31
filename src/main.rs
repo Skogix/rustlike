@@ -1,4 +1,4 @@
-use rltk::{GameState, Rltk, RGB};
+use rltk::{GameState, Rltk, RGB, Point};
 use specs::prelude::*;
 
 // pub används mellan moduler
@@ -103,6 +103,7 @@ fn main() -> rltk::BError {
             .build();
     }
     gs.ecs.insert(map);
+    gs.ecs.insert(Point::new(player_x, player_y));
 
     gs.ecs
         .create_entity()
