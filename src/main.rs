@@ -1,6 +1,8 @@
 use rltk::{GameState, Point, Rltk, RGB};
 use specs::prelude::*;
 mod components;
+mod gamelog;
+mod gui;
 pub use components::*;
 mod map;
 pub use map::*;
@@ -92,6 +94,7 @@ impl GameState for State {
                 ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)
             }
         }
+        gui::draw_ui(&self.ecs, ctx);
     }
 }
 
@@ -193,6 +196,9 @@ fn main() -> rltk::BError {
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(player_entity);
     gs.ecs.insert(RunState::PreRun);
+    gs.ecs.insert(gamelog::GameLog {
+        entries: vec!["Rustlike start".to_string()],
+    });
 
     rltk::main_loop(context, gs)
 }
